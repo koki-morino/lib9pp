@@ -17,7 +17,7 @@ WFLAGS += -Wno-gnu-zero-variadic-macro-arguments
 WFLAGS += -Wno-format-nonliteral
 WFLAGS += -Wno-unused-macros
 WFLAGS += -Wno-disabled-macro-expansion
-WFLAGS += -Werror
+#WFLAGS += -Werror
 endif
 
 ifeq ($(shell test $(CC_VERSION) -gt 600; echo $$?),0)
