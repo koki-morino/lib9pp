@@ -540,7 +540,7 @@ class P9Client(P9SockIO):
         # renaming files /one/a to /four/a, /one/two/b to /four/five/b,
         # and so on.
         with self.lock:
-            for fid2, path2 in self.live_fids.iteritems():
+            for fid2, path2 in self.live_fids.items():
                 # Skip fids without byte-string paths
                 if not isinstance(path2, bytes):
                     continue
@@ -1779,7 +1779,7 @@ def flags_to_linux_flags(flags):
 
     result = flags & os.O_RDWR
     flags &= ~os.O_RDWR
-    for key, value in flagmap.iteritems():
+    for key, value in flagmap.items():
         if flags & key:
             result |= value
             flags &= ~key

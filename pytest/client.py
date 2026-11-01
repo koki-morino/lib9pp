@@ -293,13 +293,13 @@ def main():
         help='specify additional file(s) to read (beyond testconf.ini)')
 
     args = parser.parse_args()
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     # use case sensitive keys
     config.optionxform = str
 
     try:
         with open('testconf.ini', 'r') as stream:
-            config.readfp(stream)
+            config.read_file(stream)
     except (OSError, IOError) as err:
         sys.exit(str(err))
     if args.config:
