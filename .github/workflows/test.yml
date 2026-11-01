@@ -1,0 +1,75 @@
+name: Test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run self-tests
+        working-directory: pytest
+        run: make selftest
+
+  integration:
+    name: Integration tests
+    runs-on: macos-latest
+    needs: unit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build library and server
+        run: make -f GNUmakefile
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Create shared directory
+        run: mkdir -p /tmp/foo
+
+      - name: Write test configuration
+        run: |
+          cat > pytest/testconf.ini <<EOF
+          [client]
+          server = localhost
+          port = 12345
+          timeout = 2
+          loglevel = INFO
+          logfile = ./ctest.log
+          protocol = 9p2000.L
+          only_dotl = true
+          may_downgrade = False
+          uname = $(id -un)
+          n_uname = $(id -u)
+          gid = $(id -g)
+          EOF
+
+      - name: Start server in background
+        run: |
+          DYLD_LIBRARY_PATH=build \
+            build/server -h localhost -p 12345 /tmp/foo &
+          echo "SERVER_PID=$!" >> "$GITHUB_ENV"
+          # Give it a moment to bind the port
+          sleep 1
+
+      - name: Run client integration tests
+        working-directory: pytest
+        run: python client.py
+
+      - name: Stop server
+        if: always()
+        run: kill "$SERVER_PID" 2>/dev/null || true
